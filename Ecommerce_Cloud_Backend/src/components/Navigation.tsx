@@ -9,7 +9,6 @@ import {
   FaTimes,
   FaBox,
   FaTags,
-  FaTruck,
   FaStar,
   FaSearch,
   FaHome,
@@ -93,7 +92,10 @@ export default function Navigation() {
         loadUser();
       }
       if (event.key === CART_KEY) {
-        loadCart();
+        // Defer state update to avoid updating during render
+        setTimeout(() => {
+          loadCart();
+        }, 0);
       }
     }
 
@@ -200,9 +202,6 @@ export default function Navigation() {
                 </Link>
                 <Link href="/ui/vendors/list" className={navClass("/ui/vendors/list")}>
                   Vendors
-                </Link>
-                <Link href="/ui/orders/list" className={navClass("/ui/orders/list")}>
-                  Orders
                 </Link>
               </div>
 
@@ -352,13 +351,6 @@ export default function Navigation() {
                     Vendors
                   </Link>
                   <Link
-                    href="/ui/orders/list"
-                    className={`${navClass("/ui/orders/list")} py-2 flex items-center gap-2`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Orders
-                  </Link>
-                  <Link
                     href="/ui/categories/list"
                     className={`${navClass("/ui/categories/list")} py-2 flex items-center gap-2`}
                     onClick={() => setMobileMenuOpen(false)}
@@ -442,12 +434,6 @@ export default function Navigation() {
                 className="text-xs text-gray-300 hover:text-white flex items-center gap-1 whitespace-nowrap px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
               >
                 <FaTags /> Add Category
-              </Link>
-              <Link
-                href="/ui/couriers/list"
-                className="text-xs text-gray-300 hover:text-white flex items-center gap-1 whitespace-nowrap px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
-              >
-                <FaTruck /> Couriers
               </Link>
               <Link
                 href="/ui/reviews/list"

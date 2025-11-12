@@ -25,7 +25,6 @@ model Customer {
   isActive    Boolean  @default(true)
   
   // Relationships
-  orders      Order[]
   reviews     Review[]
   cart        Cart?
   
@@ -113,7 +112,6 @@ model Product {
   // Relationships
   category     Category    @relation(fields: [categoryId], references: [id])
   vendor       Vendor      @relation(fields: [vendorId], references: [id])
-  orderItems   OrderItem[]
   reviews      Review[]
   cartItems    CartItem[]
   
@@ -126,128 +124,6 @@ model Product {
   @@index([sku])
   
   @@map("products")
-}
-
-// Courier Entity - Delivery service providers
-model Courier {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  courierName String
-  phoneNumber String
-  email       String?
-  region      String   // Service area in Ghana
-  isActive    Boolean  @default(true)
-  
-  // Relationships
-  shipments   Shipping[]
-  
-  @@map("couriers")
-}
-
-// Order Entity - Customer orders
-model Order {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderNumber   String   @unique // Human-readable order number (e.g., "GM-2024-001")
-  orderDate     DateTime @default(now())
-  status        String   @default("pending") // pending, confirmed, shipped, delivered, cancelled
-  totalAmount   Float    // In Ghana Cedi (GHS)
-  discountAmount Float?  @default(0) // Discount applied
-  notes         String?  // Special instructions
-  currency      String   @default("GHS") // Ghana Cedi
-  updatedAt     DateTime @updatedAt
-  
-  // Foreign Keys
-  customerId  String   @db.ObjectId
-  
-  // Relationships
-  customer    Customer   @relation(fields: [customerId], references: [id])
-  payment     Payment?
-  shipping    Shipping?
-  orderItems  OrderItem[]
-  
-  // Performance indexes
-  @@index([customerId])
-  @@index([status])
-  @@index([orderDate])
-  
-  @@map("orders")
-}
-
-// OrderItem Entity - Individual items in an order
-model OrderItem {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  quantity  Int    // Must be positive
-  unitPrice Float  // Price at time of order in GHS
-  subtotal  Float  // quantity * unitPrice
-  
-  // Foreign Keys
-  orderId   String @db.ObjectId
-  productId String @db.ObjectId
-  
-  // Relationships
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
-  
-  // Performance indexes
-  @@index([orderId])
-  @@index([productId])
-  
-  @@map("orderItems")
-}
-
-// Payment Entity - Payment processing with Mobile Money support
-model Payment {
-  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
-  paymentDate          DateTime @default(now())
-  amount               Float    // In Ghana Cedi (GHS)
-  paymentMethod        String   // MTN Mobile Money, Vodafone Cash, AirtelTigo Money, Bank Transfer, Cash
-  transactionReference String?  // Mobile Money transaction ID
-  status               String   @default("pending") // pending, completed, failed, refunded
-  fees                 Float?   @default(0) // Transaction fees
-  currency             String   @default("GHS") // Ghana Cedi
-  
-  // Foreign Keys
-  orderId              String   @unique @db.ObjectId
-  
-  // Relationships
-  order                Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  // Performance indexes
-  @@index([status])
-  @@index([paymentMethod])
-  @@index([paymentDate])
-  
-  @@map("payments")
-}
-
-// Shipping Entity - Order delivery management
-model Shipping {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
-  shippingAddress String
-  city            String
-  region          String    // Ghana region
-  postalCode      String?   // Ghana postal codes
-  shippingDate    DateTime?
-  deliveryDate    DateTime?
-  estimatedDelivery DateTime? // Estimated delivery date
-  trackingNumber  String?   // Courier tracking number
-  shippingCost    Float?    @default(0) // Shipping fee in GHS
-  status          String    @default("pending") // pending, shipped, in_transit, delivered, failed
-  notes           String?   // Delivery instructions
-  
-  // Foreign Keys
-  orderId         String    @unique @db.ObjectId
-  courierId       String    @db.ObjectId
-  
-  // Relationships
-  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  courier         Courier   @relation(fields: [courierId], references: [id])
-  
-  // Performance indexes
-  @@index([courierId])
-  @@index([status])
-  @@index([trackingNumber])
-  
-  @@map("shipping")
 }
 
 // Review Entity - Product reviews and ratings
