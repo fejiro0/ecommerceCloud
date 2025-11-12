@@ -86,14 +86,16 @@ export default function CategoriesListPage() {
 
       {/* Search */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div className="flex items-center gap-2">
+          <div className="w-11 h-11 rounded-lg border-2 border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500">
+            <FaSearch />
+          </div>
           <input
             type="text"
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="flex-1 h-11 border-2 rounded-lg px-4 focus:ring-2 focus:ring-green-500 focus:border-green-500"
           />
         </div>
       </div>

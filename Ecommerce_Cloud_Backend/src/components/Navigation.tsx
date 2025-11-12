@@ -162,11 +162,7 @@ export default function Navigation() {
                   <FaHome className="inline mr-1" />
                   Home
                 </Link>
-                <div
-                  className="relative dropdown-trigger"
-                  onMouseEnter={() => setCategoriesOpen(true)}
-                  onMouseLeave={() => setCategoriesOpen(false)}
-                >
+                <div className="relative dropdown-trigger">
                   <button
                     className={`inline-flex items-center gap-1 ${navClass("/ui/categories/list")}`}
                     onClick={() => setCategoriesOpen((prev) => !prev)}

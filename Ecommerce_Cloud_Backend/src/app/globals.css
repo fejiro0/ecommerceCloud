@@ -64,6 +64,36 @@ textarea {
   padding: 0.65rem 0.9rem;
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
   font-family: inherit;
+  width: 100%;
+}
+
+/* Select-specific styling to prevent dropdown issues */
+select {
+  cursor: pointer;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+select option {
+  background: #ffffff;
+  color: var(--foreground);
+  padding: 0.5rem 0.75rem;
+  min-height: 2.5rem;
+  cursor: pointer;
+}
+
+select option:hover,
+select option:focus,
+select option:active {
+  background: rgba(16,185,129,0.1);
+  color: var(--foreground);
 }
 
 input::placeholder,

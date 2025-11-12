@@ -148,8 +148,8 @@ export default function ProductsListPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-2">
           <span className="pill">Product catalogue</span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white">Products</h1>
-          <p className="text-sm text-gray-400">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">Products</h1>
+          <p className="text-sm text-gray-200 font-medium">
             {products.length} {resultsLabel} ready for customers
           </p>
         </div>
@@ -160,19 +160,21 @@ export default function ProductsListPage() {
 
       <div className="glass-surface rounded-3xl p-6 space-y-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <div className="flex items-center gap-2 flex-1">
+            <div className="w-11 h-11 rounded-lg border-2 border-white/30 bg-white/10 flex items-center justify-center text-gray-300">
+              <FaSearch />
+            </div>
             <input
               type="text"
               placeholder="Search by name, description, brand or SKU"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10"
+              className="flex-1 h-11 rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder-gray-400 px-4 focus:border-[var(--gold)] focus:bg-white/15 focus:ring-2 focus:ring-[var(--gold)]/30 transition-all"
             />
           </div>
           <button
             onClick={() => setShowFilters((prev) => !prev)}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-gray-200 hover:border-white/30"
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-200 hover:border-[var(--gold)]/50 hover:bg-white/10 transition-all"
           >
             <FaFilter /> {showFilters ? "Hide filters" : "More filters"}
           </button>
@@ -196,10 +198,10 @@ export default function ProductsListPage() {
         )}
 
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/20">
             <div>
-              <label className="block text-sm mb-1">Category</label>
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <label className="block text-sm mb-2 text-gray-200 font-semibold">Category</label>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full rounded-xl border-2 border-white/20 bg-white/10 text-white px-4 py-2.5">
                 <option value="">All categories</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -209,7 +211,7 @@ export default function ProductsListPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm mb-1">Min price (GH₵)</label>
+              <label className="block text-sm mb-2 text-gray-200 font-semibold">Min price (GH₵)</label>
               <input
                 type="number"
                 value={minPrice}
@@ -217,10 +219,11 @@ export default function ProductsListPage() {
                 placeholder="0"
                 min="0"
                 step="0.01"
+                className="w-full rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder-gray-400 px-4 py-2.5"
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Max price (GH₵)</label>
+              <label className="block text-sm mb-2 text-gray-200 font-semibold">Max price (GH₵)</label>
               <input
                 type="number"
                 value={maxPrice}
@@ -228,6 +231,7 @@ export default function ProductsListPage() {
                 placeholder="10000"
                 min="0"
                 step="0.01"
+                className="w-full rounded-xl border-2 border-white/20 bg-white/10 text-white placeholder-gray-400 px-4 py-2.5"
               />
             </div>
           </div>

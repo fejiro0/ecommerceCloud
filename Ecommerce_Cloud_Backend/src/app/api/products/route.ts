@@ -143,11 +143,11 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!productName || !description || !price || stockQuantity === undefined || !categoryId || !vendorId) {
+    if (!productName || !description || !price || stockQuantity === undefined || !categoryId) {
       return NextResponse.json(
         {
           status: 'error',
-          message: 'Please provide all required fields: productName, description, price, stockQuantity, categoryId, vendorId',
+          message: 'Please provide all required fields: productName, description, price, stockQuantity, categoryId',
         },
         { status: 400 }
       );
@@ -200,19 +200,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify vendor exists
-    const vendor = await prisma.vendor.findUnique({
-      where: { id: vendorId },
-    });
+    // Auto-assign vendor if not provided
+    let finalVendorId = vendorId;
+    if (!finalVendorId) {
+      // Get the first available active vendor
+      const defaultVendor = await prisma.vendor.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'asc' },
+      });
 
-    if (!vendor) {
-      return NextResponse.json(
-        {
-          status: 'error',
-          message: 'Invalid vendor ID',
-        },
-        { status: 400 }
-      );
+      if (!defaultVendor) {
+        return NextResponse.json(
+          {
+            status: 'error',
+            message: 'No active vendor found. Please create a vendor first or specify a vendorId.',
+          },
+          { status: 400 }
+        );
+      }
+
+      finalVendorId = defaultVendor.id;
+    } else {
+      // Verify vendor exists if provided
+      const vendor = await prisma.vendor.findUnique({
+        where: { id: finalVendorId },
+      });
+
+      if (!vendor) {
+        return NextResponse.json(
+          {
+            status: 'error',
+            message: 'Invalid vendor ID',
+          },
+          { status: 400 }
+        );
+      }
     }
 
     const product = await prisma.product.create({
@@ -222,7 +244,7 @@ export async function POST(request: NextRequest) {
         price: parseFloat(price),
         stockQuantity: parseInt(stockQuantity),
         categoryId,
-        vendorId,
+        vendorId: finalVendorId,
         imageURL: imageURL || null,
         galleryImages: Array.isArray(galleryImages) ? galleryImages : [],
         sku,

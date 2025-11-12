@@ -301,8 +301,10 @@ export default function EditProductPage() {
                 value={form.categoryId}
                 onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                 required
+                className="w-full"
+                style={{ appearance: 'auto' }}
               >
-                <option value="">Select a category...</option>
+                <option value="">-- Select a category --</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.categoryName}
@@ -311,19 +313,23 @@ export default function EditProductPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm mb-1">Vendor *</label>
+              <label className="block text-sm mb-1">Vendor</label>
               <select
                 value={form.vendorId}
                 onChange={(e) => setForm({ ...form, vendorId: e.target.value })}
-                required
+                className="w-full"
+                style={{ appearance: 'auto' }}
               >
-                <option value="">Select a vendor...</option>
+                <option value="">-- Keep current vendor --</option>
                 {vendors.map((vendor) => (
                   <option key={vendor.id} value={vendor.id}>
                     {vendor.vendorName} ({vendor.region}) {vendor.isVerified ? "✓" : ""}
                   </option>
                 ))}
               </select>
+              <p className="text-xs text-gray-400 mt-1">
+                Leave unchanged to keep current vendor
+              </p>
             </div>
           </div>
 

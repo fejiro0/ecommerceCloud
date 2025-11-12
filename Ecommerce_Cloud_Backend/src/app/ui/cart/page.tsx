@@ -94,7 +94,7 @@ export default function CartPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
         <div className="glass-surface rounded-3xl p-12">
-          <FaShoppingCart className="mx-auto text-5xl text-gray-500 mb-4" />
+          <FaShoppingCart className="mx-auto text-5xl text-gray-400 mb-4" />
           <h1 className="text-3xl font-extrabold text-white">Your cart is empty</h1>
           <p className="text-sm text-gray-300">Add products to start checkout.</p>
           <div className="flex justify-center gap-3 mt-6">
@@ -112,10 +112,10 @@ export default function CartPage() {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div className="space-y-2">
           <span className="pill">Shopping cart</span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white">Review your items</h1>
-          <p className="text-sm text-gray-400">{totals.totalItems} item(s) ready for checkout</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">Review your items</h1>
+          <p className="text-sm text-gray-300">{totals.totalItems} item(s) ready for checkout</p>
         </div>
-        <button onClick={clearCart} className="text-sm text-[var(--secondary)] font-semibold hover:text-red-400">
+        <button onClick={clearCart} className="text-sm text-red-400 font-semibold hover:text-red-300 transition-colors">
           Clear cart
         </button>
       </div>
@@ -124,12 +124,12 @@ export default function CartPage() {
         <div className="space-y-4">
           {cartItems.map((item) => (
             <div key={item.productId} className="glass-surface rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row gap-4">
-              <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[rgba(255,255,255,0.04)]">
+              <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-2xl border border-white/20 bg-white/10">
                 {item.imageURL ? (
                   <Image src={item.imageURL} alt={item.productName} fill className="object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-gray-500">
-                    <FaImage className="text-2xl" />
+                  <div className="flex h-full w-full items-center justify-center text-gray-300">
+                    <FaImage className="text-3xl" />
                   </div>
                 )}
               </div>
@@ -138,39 +138,39 @@ export default function CartPage() {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">{item.productName}</h3>
-                    <p className="text-sm text-gray-300">GH₵ {item.price.toFixed(2)} each</p>
+                    <p className="text-sm text-gray-200">GH₵ {item.price.toFixed(2)} each</p>
                   </div>
                   <button
                     onClick={() => removeItem(item.productId)}
-                    className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--secondary)] hover:text-red-400"
+                    className="inline-flex items-center gap-2 text-xs font-semibold text-red-400 hover:text-red-300"
                   >
                     <FaTrash /> Remove
                   </button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.productId, -1)}
-                      className="rounded-full border border-white/15 p-2 hover:border-white/30"
+                      className="rounded-full border border-white/20 p-2 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white transition-all"
                     >
                       <FaMinus className="text-xs" />
                     </button>
-                    <span className="min-w-[36px] text-center font-semibold text-gray-200">{item.quantity}</span>
+                    <span className="min-w-[36px] text-center font-semibold text-white text-base">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.productId, 1)}
-                      className="rounded-full border border-white/15 p-2 hover:border-white/30"
+                      className="rounded-full border border-white/20 p-2 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white transition-all"
                       disabled={item.quantity >= item.stockQuantity}
                     >
                       <FaPlus className="text-xs" />
                     </button>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {item.stockQuantity > 0 ? `${item.stockQuantity} available` : "Out of stock"}
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-[var(--gold)]">
+                <p className="text-base font-bold text-[var(--gold)]">
                   Subtotal: GH₵ {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
@@ -179,24 +179,24 @@ export default function CartPage() {
         </div>
 
         <aside className="glass-surface rounded-3xl p-6 space-y-5 h-fit">
-          <h2 className="text-xl font-semibold text-white">Order summary</h2>
-          <div className="space-y-3 text-sm text-gray-300">
+          <h2 className="text-xl font-bold text-white">Order summary</h2>
+          <div className="space-y-3 text-sm text-gray-200">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>GH₵ {totals.subtotal.toFixed(2)}</span>
+              <span className="font-semibold">GH₵ {totals.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Shipping</span>
-              <span>{totals.shipping === 0 ? "FREE" : `GH₵ ${totals.shipping.toFixed(2)}`}</span>
+              <span className="font-semibold">{totals.shipping === 0 ? "FREE" : `GH₵ ${totals.shipping.toFixed(2)}`}</span>
             </div>
             {totals.subtotal > 0 && totals.subtotal < 500 && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-300 bg-white/5 rounded-lg p-2 border border-white/10">
                 Add GH₵ {(500 - totals.subtotal).toFixed(2)} more for free shipping.
               </p>
             )}
-            <div className="border-t border-white/10 pt-3 flex justify-between text-base font-semibold text-white">
+            <div className="border-t border-white/20 pt-3 flex justify-between text-lg font-bold text-white">
               <span>Total</span>
-              <span>GH₵ {totals.total.toFixed(2)}</span>
+              <span className="text-[var(--gold)]">GH₵ {totals.total.toFixed(2)}</span>
             </div>
           </div>
 
@@ -206,7 +206,7 @@ export default function CartPage() {
           >
             Proceed to checkout
           </Link>
-          <Link href="/ui/products/list" className="block text-center text-xs text-gray-300 hover:text-white">
+          <Link href="/ui/products/list" className="block text-center text-xs text-gray-300 hover:text-white transition-colors">
             Continue shopping
           </Link>
         </aside>

@@ -131,7 +131,7 @@ export default function NewProductPage() {
           price: parseFloat(form.price),
           stockQuantity: parseInt(form.stockQuantity),
           categoryId: form.categoryId,
-          vendorId: form.vendorId,
+          vendorId: form.vendorId || undefined, // Optional - will be auto-assigned on backend
           imageURL: primaryImage || undefined,
           galleryImages,
           sku: form.sku || undefined,
@@ -236,8 +236,10 @@ export default function NewProductPage() {
                 value={form.categoryId}
                 onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                 required
+                className="w-full"
+                style={{ appearance: 'auto' }}
               >
-                <option value="">Select a category...</option>
+                <option value="">-- Select a category --</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.categoryName}
@@ -251,36 +253,16 @@ export default function NewProductPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm mb-1 text-gray-900 font-semibold">Vendor *</label>
-              <select
-                value={form.vendorId}
-                onChange={(e) => setForm({ ...form, vendorId: e.target.value })}
-                required
-              >
-                <option value="">Select a vendor...</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.vendorName} ({vendor.region}) {vendor.isVerified ? "✓" : ""}
-                  </option>
-                ))}
-              </select>
-              {vendors.length === 0 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  No vendors found. <Link href="/ui/vendors/new" className="underline">Create one</Link>
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
               <label className="block text-sm mb-1 text-gray-900 font-semibold">SKU</label>
               <input
                 value={form.sku}
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                placeholder="Optional"
+                placeholder="Optional product code"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-1 text-gray-900 font-semibold">Weight (kg)</label>
               <input
@@ -291,6 +273,25 @@ export default function NewProductPage() {
                 step="0.01"
                 min="0"
               />
+            </div>
+            <div>
+              <label className="block text-sm mb-1 text-gray-900 font-semibold">Vendor</label>
+              <select
+                value={form.vendorId}
+                onChange={(e) => setForm({ ...form, vendorId: e.target.value })}
+                className="w-full"
+                style={{ appearance: 'auto' }}
+              >
+                <option value="">-- Auto-assign to me --</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor.id} value={vendor.id}>
+                    {vendor.vendorName} ({vendor.region}) {vendor.isVerified ? "✓" : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to auto-assign to your vendor account
+              </p>
             </div>
           </div>
 
