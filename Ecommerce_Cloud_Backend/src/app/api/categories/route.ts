@@ -21,11 +21,13 @@ export async function GET() {
       status: 'success',
       data: { categories },
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to fetch categories:', error);
     return NextResponse.json(
       {
         status: 'error',
         message: 'Failed to fetch categories',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
     );

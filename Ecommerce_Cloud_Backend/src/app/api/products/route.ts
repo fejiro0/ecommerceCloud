@@ -107,11 +107,13 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to fetch products:', error);
     return NextResponse.json(
       {
         status: 'error',
         message: 'Failed to fetch products',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
     );
@@ -206,7 +208,7 @@ export async function POST(request: NextRequest) {
       // Get the first available active vendor
       const defaultVendor = await prisma.vendor.findFirst({
         where: { isActive: true },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { joinedDate: 'asc' },
       });
 
       if (!defaultVendor) {
@@ -283,11 +285,13 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Product creation error:', error);
     return NextResponse.json(
       {
         status: 'error',
-        message: 'Failed to create product',
+        message: error.message || 'Failed to create product',
+        details: process.env.NODE_ENV === 'development' ? error.toString() : undefined,
       },
       { status: 500 }
     );

@@ -128,15 +128,15 @@ export default function NewProductPage() {
         body: JSON.stringify({
           productName: form.productName,
           description: form.description,
-          price: parseFloat(form.price),
-          stockQuantity: parseInt(form.stockQuantity),
+          price: form.price, // Send as string, API will parse
+          stockQuantity: form.stockQuantity, // Send as string, API will parse
           categoryId: form.categoryId,
           vendorId: form.vendorId || undefined, // Optional - will be auto-assigned on backend
           imageURL: primaryImage || undefined,
           galleryImages,
           sku: form.sku || undefined,
           brand: form.brand || undefined,
-          weight: form.weight ? parseFloat(form.weight) : undefined,
+          weight: form.weight || undefined, // Send as string, API will parse
           isActive: form.isActive,
           highlights: highlightList,
           deliveryInfo: form.deliveryInfo || undefined,
@@ -153,6 +153,7 @@ export default function NewProductPage() {
       toast.success("Product created successfully!");
       router.push("/ui/products/list");
     } catch (error: any) {
+      console.error("Product creation error:", error);
       toast.error(error.message || "Failed to create product");
     } finally {
       setLoading(false);

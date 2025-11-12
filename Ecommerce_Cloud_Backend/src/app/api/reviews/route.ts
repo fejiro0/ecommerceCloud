@@ -39,11 +39,13 @@ export async function GET(request: NextRequest) {
       status: 'success',
       data: { reviews },
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to fetch reviews:', error);
     return NextResponse.json(
       {
         status: 'error',
         message: 'Failed to fetch reviews',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
     );
@@ -157,11 +159,13 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Failed to create review:', error);
     return NextResponse.json(
       {
         status: 'error',
-        message: 'Failed to create review',
+        message: error.message || 'Failed to create review',
+        details: process.env.NODE_ENV === 'development' ? error.toString() : undefined,
       },
       { status: 500 }
     );

@@ -58,13 +58,10 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [showMessageForm, setShowMessageForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
-  const [messageSubject, setMessageSubject] = useState("");
-  const [messageContent, setMessageContent] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [submittingMessage, setSubmittingMessage] = useState(false);
+  const [creatingConversation, setCreatingConversation] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -242,47 +239,52 @@ export default function ProductDetailPage() {
     }
   }
 
-  async function handleSendMessage(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleStartConversation() {
     if (!product) return;
 
     const stored = localStorage.getItem("gomart:user");
     if (!stored) {
-      toast.error("Please login to send a message");
+      toast.error("Please login to message the vendor");
       router.push("/ui/customers/login");
       return;
     }
 
     const user = JSON.parse(stored);
-    setSubmittingMessage(true);
+    
+    if (!user?.id) {
+      toast.error("Invalid user session. Please login again.");
+      router.push("/ui/customers/login");
+      return;
+    }
+
+    setCreatingConversation(true);
 
     try {
-      const res = await fetch("/api/messages", {
+      // Create or get existing conversation
+      const res = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId: user.id,
           vendorId: product.vendor.id,
           productId: product.id,
-          subject: messageSubject,
-          message: messageContent,
+          subject: `Inquiry about ${product.productName}`,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to send message");
+        throw new Error(data.message || "Failed to start conversation");
       }
 
-      toast.success("Message sent to vendor!");
-      setShowMessageForm(false);
-      setMessageSubject("");
-      setMessageContent("");
+      // Redirect to conversation
+      router.push(`/ui/conversations/${data.data.conversation.id}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to send message");
+      console.error("Failed to start conversation:", error);
+      toast.error(error.message || "Failed to start conversation");
     } finally {
-      setSubmittingMessage(false);
+      setCreatingConversation(false);
     }
   }
 
@@ -401,10 +403,20 @@ export default function ProductDetailPage() {
               <FaShoppingCart /> Add to cart
             </button>
             <button
-              onClick={() => setShowMessageForm(true)}
-              className="btn-accent w-full px-6 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              onClick={handleStartConversation}
+              disabled={creatingConversation}
+              className="btn-accent w-full px-6 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaEnvelope /> Message Vendor
+              {creatingConversation ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Opening Chat...
+                </>
+              ) : (
+                <>
+                  <FaEnvelope /> Message Vendor
+                </>
+              )}
             </button>
           </div>
 
@@ -604,64 +616,6 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      {/* Message Vendor Modal */}
-      {showMessageForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="glass-surface rounded-3xl p-8 max-w-md w-full space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-extrabold text-white">Message Vendor</h3>
-              <button
-                onClick={() => setShowMessageForm(false)}
-                className="text-gray-400 hover:text-white text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleSendMessage} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
-                <input
-                  type="text"
-                  value={messageSubject}
-                  onChange={(e) => setMessageSubject(e.target.value)}
-                  required
-                  className="input w-full"
-                  placeholder="e.g., Question about product availability"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Message</label>
-                <textarea
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                  required
-                  className="input w-full h-32"
-                  placeholder="Write your message to the vendor..."
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowMessageForm(false)}
-                  className="btn-secondary flex-1 px-6 py-3 rounded-xl text-sm font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingMessage}
-                  className="btn-primary flex-1 px-6 py-3 rounded-xl text-sm font-semibold disabled:opacity-50"
-                >
-                  {submittingMessage ? "Sending..." : "Send Message"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

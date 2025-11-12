@@ -25,9 +25,10 @@ model Customer {
   isActive    Boolean  @default(true)
   
   // Relationships
-  reviews     Review[]
-  cart        Cart?
-  messages    Message[]
+  reviews        Review[]
+  cart           Cart?
+  conversations  Conversation[]
+  sentMessages   Message[]       @relation("MessageSender")
   
   @@map("customers")
 }
@@ -76,7 +77,8 @@ model Vendor {
   
   // Relationships
   products        Product[]
-  messages        Message[]
+  conversations   Conversation[]
+  sentMessages    Message[]       @relation("VendorMessageSender")
   
   // Performance indexes
   @@index([isVerified])
@@ -112,10 +114,11 @@ model Product {
   vendorId     String   @db.ObjectId
   
   // Relationships
-  category     Category    @relation(fields: [categoryId], references: [id])
-  vendor       Vendor      @relation(fields: [vendorId], references: [id])
-  reviews      Review[]
-  cartItems    CartItem[]
+  category       Category        @relation(fields: [categoryId], references: [id])
+  vendor         Vendor          @relation(fields: [vendorId], references: [id])
+  reviews        Review[]
+  cartItems      CartItem[]
+  conversations  Conversation[]
   
   // Performance indexes
   @@index([categoryId])
@@ -188,28 +191,62 @@ model CartItem {
   @@map("cartItems")
 }
 
-// Message Entity - Customer-Vendor messaging system
-model Message {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  subject     String   // Message subject
-  message     String   // Message content
-  productId   String?  @db.ObjectId // Optional - if message is about a specific product
-  status      String   @default("unread") // unread, read, replied
-  createdAt   DateTime @default(now())
+// Conversation Entity - Chat threads between customers and vendors
+model Conversation {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  subject         String    // Conversation subject (e.g., product name)
+  lastMessageAt   DateTime  @default(now())
+  customerUnread  Int       @default(0) // Count of unread messages for customer
+  vendorUnread    Int       @default(0) // Count of unread messages for vendor
+  createdAt       DateTime  @default(now())
   
   // Foreign Keys
-  customerId  String   @db.ObjectId
-  vendorId    String   @db.ObjectId
+  customerId      String    @db.ObjectId
+  vendorId        String    @db.ObjectId
+  productId       String?   @db.ObjectId // Optional - if conversation is about a specific product
   
   // Relationships
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vendor          Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages        Message[]
   
   // Performance indexes
   @@index([customerId])
   @@index([vendorId])
-  @@index([status])
+  @@index([productId])
+  @@index([lastMessageAt])
+  @@index([customerUnread])
+  @@index([vendorUnread])
+  
+  @@map("conversations")
+}
+
+// Message Entity - Individual messages within conversations
+model Message {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  content         String       // Message text content
+  senderType      String       // "customer" or "vendor"
+  isRead          Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  
+  // Foreign Keys
+  conversationId  String       @db.ObjectId
+  senderId        String       @db.ObjectId // Can be either customerId or vendorId
+  
+  // Relationships
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  // Conditional relationships for sender tracking
+  customerSender  Customer?    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  vendorSender    Vendor?      @relation("VendorMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  // Performance indexes
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([senderType])
   @@index([createdAt])
+  @@index([isRead])
   
   @@map("messages")
 }
