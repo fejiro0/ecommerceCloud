@@ -18,21 +18,28 @@ export async function GET(
     const conversation = await prisma.conversation.findUnique({
       where: { id },
       include: {
-        customer: {
+        sender: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             email: true,
-          },
-        },
-        vendor: {
-          select: {
-            id: true,
-            vendorName: true,
-            email: true,
+            businessName: true,
             storeLogo: true,
             whatsappNumber: true,
+            isSeller: true,
+          },
+        },
+        receiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            businessName: true,
+            storeLogo: true,
+            whatsappNumber: true,
+            isSeller: true,
           },
         },
         product: {
@@ -48,7 +55,6 @@ export async function GET(
           select: {
             id: true,
             content: true,
-            senderType: true,
             senderId: true,
             isRead: true,
             createdAt: true,
@@ -91,24 +97,45 @@ export async function PUT(
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { userType } = body; // 'customer' or 'vendor'
+    const { userId } = body; // ID of user marking as read
 
-    console.log(`Marking messages as read for ${userType} in conversation:`, id);
+    console.log(`Marking messages as read for user ${userId} in conversation:`, id);
 
-    if (!userType) {
+    if (!userId) {
       return NextResponse.json(
-        { status: 'error', message: 'User type is required' },
+        { status: 'error', message: 'User ID is required' },
         { status: 400 }
       );
     }
 
+    // Get the conversation to determine if user is sender or receiver
+    const conversation = await prisma.conversation.findUnique({
+      where: { id },
+      select: { senderId: true, receiverId: true },
+    });
+
+    if (!conversation) {
+      return NextResponse.json(
+        { status: 'error', message: 'Conversation not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify user is part of this conversation
+    if (conversation.senderId !== userId && conversation.receiverId !== userId) {
+      return NextResponse.json(
+        { status: 'error', message: 'Not authorized' },
+        { status: 403 }
+      );
+    }
+
     // Update all unread messages from the other party
-    const otherSenderType = userType === 'customer' ? 'vendor' : 'customer';
+    const otherUserId = conversation.senderId === userId ? conversation.receiverId : conversation.senderId;
 
     await prisma.message.updateMany({
       where: {
         conversationId: id,
-        senderType: otherSenderType,
+        senderId: otherUserId,
         isRead: false,
       },
       data: {
@@ -118,9 +145,9 @@ export async function PUT(
 
     // Reset unread count for this user
     const updateData =
-      userType === 'customer'
-        ? { customerUnread: 0 }
-        : { vendorUnread: 0 };
+      conversation.senderId === userId
+        ? { senderUnread: 0 }
+        : { receiverUnread: 0 };
 
     await prisma.conversation.update({
       where: { id },

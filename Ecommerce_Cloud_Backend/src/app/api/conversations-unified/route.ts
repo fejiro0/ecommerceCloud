@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/conversations - Get all conversations for a user
+// GET /api/conversations-unified - Get all conversations for a user
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
             isSeller: true,
@@ -44,7 +43,6 @@ export async function GET(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
             isSeller: true,
@@ -90,7 +88,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/conversations - Create or get existing conversation
+// POST /api/conversations-unified - Create or get existing conversation
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -142,10 +140,8 @@ export async function POST(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
-            isSeller: true,
           },
         },
         receiver: {
@@ -153,10 +149,8 @@ export async function POST(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
-            isSeller: true,
           },
         },
         product: {
@@ -230,7 +224,6 @@ export async function POST(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
           },
@@ -240,7 +233,6 @@ export async function POST(request: NextRequest) {
             id: true,
             firstName: true,
             lastName: true,
-            email: true,
             businessName: true,
             storeLogo: true,
           },

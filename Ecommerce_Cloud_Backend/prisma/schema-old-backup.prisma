@@ -1,0 +1,252 @@
+// GoMart E-commerce Platform - Prisma Schema
+// MongoDB Database Configuration for Ghana-focused ecommerce platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Customer Entity - User management with Ghana-specific fields
+model Customer {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName   String
+  lastName    String
+  email       String   @unique
+  phoneNumber String   @unique
+  password    String
+  region      String   // Ghana regions: Greater Accra, Ashanti, etc.
+  city        String
+  address     String
+  dateJoined  DateTime @default(now())
+  isActive    Boolean  @default(true)
+  
+  // Relationships
+  reviews        Review[]
+  cart           Cart?
+  conversations  Conversation[]
+  sentMessages   Message[]       @relation("MessageSender")
+  
+  @@map("customers")
+}
+
+// Category Entity - Product categorization
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  categoryName String   @unique
+  description String?
+  
+  // Relationships
+  products    Product[]
+  
+  @@map("categories")
+}
+
+// Vendor Entity - Seller management
+model Vendor {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorName      String
+  email           String   @unique
+  phoneNumber     String   @unique // Should be unique
+  businessAddress String
+  region          String   // Ghana regions
+  city            String
+  businessLicense String?  // Business registration number
+  taxId           String?  // Tax identification
+  storeDescription String?
+  storeLogo       String?
+  storeBanner     String?
+  whatsappNumber  String?
+  instagramHandle String?
+  facebookPage    String?
+  payoutMethod    String?
+  mobileMoneyNetwork String?
+  mobileMoneyNumber  String?
+  bankName        String?
+  bankAccountName String?
+  bankAccountNumber String?
+  deliveryRegions String[] @default([])
+  featured        Boolean  @default(false)
+  joinedDate      DateTime @default(now())
+  isVerified      Boolean  @default(false)
+  isActive        Boolean  @default(true) // Account status
+  rating          Float?   // Average vendor rating
+  
+  // Relationships
+  products        Product[]
+  conversations   Conversation[]
+  sentMessages    Message[]       @relation("VendorMessageSender")
+  
+  // Performance indexes
+  @@index([isVerified])
+  @@index([isActive])
+  @@index([region])
+  
+  @@map("vendors")
+}
+
+// Product Entity - Main product catalog
+model Product {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  productName  String
+  description  String
+  price        Float    // Stored in Ghana Cedi (GHS) - must be positive
+  stockQuantity Int     // Must be non-negative
+  imageURL     String?
+  sku          String?  // Stock Keeping Unit
+  brand        String?
+  weight       Float?   // For shipping calculations (kg)
+  galleryImages String[] @default([])
+  highlights   String[] @default([])
+  deliveryInfo String?
+  returnPolicy String?
+  videoURL     String?
+  specifications Json?
+  isActive     Boolean  @default(true) // Soft delete flag
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Foreign Keys
+  categoryId   String   @db.ObjectId
+  vendorId     String   @db.ObjectId
+  
+  // Relationships
+  category       Category        @relation(fields: [categoryId], references: [id])
+  vendor         Vendor          @relation(fields: [vendorId], references: [id])
+  reviews        Review[]
+  cartItems      CartItem[]
+  conversations  Conversation[]
+  
+  // Performance indexes
+  @@index([categoryId])
+  @@index([vendorId])
+  @@index([price])
+  @@index([createdAt])
+  @@index([isActive])
+  @@index([sku])
+  
+  @@map("products")
+}
+
+// Review Entity - Product reviews and ratings
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating     Int      // 1-5 star rating
+  comment    String?
+  createdAt  DateTime @default(now())
+  
+  // Foreign Keys
+  customerId String   @db.ObjectId
+  productId  String   @db.ObjectId
+  
+  // Relationships - FIXED: No cascade delete on product
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  
+  // Validation
+  @@index([customerId])
+  @@index([productId])
+  @@index([rating])
+  
+  @@map("reviews")
+}
+
+// Cart Entity - Shopping cart management
+model Cart {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime   @default(now())
+  
+  // Foreign Keys
+  customerId String     @unique @db.ObjectId
+  
+  // Relationships
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  
+  @@map("carts")
+}
+
+// CartItem Entity - Items in shopping cart
+model CartItem {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  addedAt   DateTime @default(now()) // Track when item was added
+  
+  // Foreign Keys
+  cartId    String @db.ObjectId
+  productId String @db.ObjectId
+  
+  // Relationships - FIXED: No cascade delete on product
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  // Prevent duplicate products in same cart
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+  
+  @@map("cartItems")
+}
+
+// Conversation Entity - Chat threads between customers and vendors
+model Conversation {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  subject         String    // Conversation subject (e.g., product name)
+  lastMessageAt   DateTime  @default(now())
+  customerUnread  Int       @default(0) // Count of unread messages for customer
+  vendorUnread    Int       @default(0) // Count of unread messages for vendor
+  createdAt       DateTime  @default(now())
+  
+  // Foreign Keys
+  customerId      String    @db.ObjectId
+  vendorId        String    @db.ObjectId
+  productId       String?   @db.ObjectId // Optional - if conversation is about a specific product
+  
+  // Relationships
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vendor          Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages        Message[]
+  
+  // Performance indexes
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([productId])
+  @@index([lastMessageAt])
+  @@index([customerUnread])
+  @@index([vendorUnread])
+  
+  @@map("conversations")
+}
+
+// Message Entity - Individual messages within conversations
+model Message {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  content         String       // Message text content
+  senderType      String       // "customer" or "vendor"
+  isRead          Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  
+  // Foreign Keys
+  conversationId  String       @db.ObjectId
+  senderId        String       @db.ObjectId // Can be either customerId or vendorId
+  
+  // Relationships
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  // Conditional relationships for sender tracking
+  customerSender  Customer?    @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  vendorSender    Vendor?      @relation("VendorMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  // Performance indexes
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([senderType])
+  @@index([createdAt])
+  @@index([isRead])
+  
+  @@map("messages")
+}

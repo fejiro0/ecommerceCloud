@@ -84,8 +84,7 @@ export default function Navigation() {
         
         // Load unread messages when user is loaded
         if (userData?.id) {
-          const userType = userData.userType || 'customer';
-          loadUnreadMessages(userData.id, userType);
+          loadUnreadMessages(userData.id);
         }
       } catch (error) {
         setUser(null);
@@ -96,14 +95,17 @@ export default function Navigation() {
       setCartCount(readCartCount());
     }
 
-    async function loadUnreadMessages(userId: string, userType: string = 'customer') {
+    async function loadUnreadMessages(userId: string) {
       try {
-        const res = await fetch(`/api/conversations?userId=${userId}&userType=${userType}`);
+        const res = await fetch(`/api/conversations?userId=${userId}`);
         if (res.ok) {
           const data = await res.json();
           // Count total unread messages from all conversations
-          const unreadField = userType === 'vendor' ? 'vendorUnread' : 'customerUnread';
-          const totalUnread = data.data?.conversations?.reduce((sum: number, conv: any) => sum + (conv[unreadField] || 0), 0) || 0;
+          // Check if user is sender or receiver to get correct unread count
+          const totalUnread = data.data?.conversations?.reduce((sum: number, conv: any) => {
+            const unread = conv.senderId === userId ? conv.senderUnread : conv.receiverUnread;
+            return sum + (unread || 0);
+          }, 0) || 0;
           setUnreadMessageCount(totalUnread);
         }
       } catch (error) {
@@ -128,8 +130,7 @@ export default function Navigation() {
         if (stored) {
           const userData = JSON.parse(stored);
           if (userData?.id) {
-            const userType = userData.userType || 'customer';
-            loadUnreadMessages(userData.id, userType);
+            loadUnreadMessages(userData.id);
           }
         }
       }
@@ -145,8 +146,7 @@ export default function Navigation() {
       if (stored) {
         const userData = JSON.parse(stored);
         if (userData?.id) {
-          const userType = userData.userType || 'customer';
-          loadUnreadMessages(userData.id, userType);
+          loadUnreadMessages(userData.id);
         }
       }
     }, 30000); // 30 seconds

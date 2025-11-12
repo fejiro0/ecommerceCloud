@@ -13,31 +13,20 @@ export async function POST(
   try {
     const { id: conversationId } = await context.params;
     const body = await request.json();
-    const { content, senderId, senderType } = body;
+    const { content, senderId } = body;
 
-    console.log('Sending message:', { conversationId, senderId, senderType, contentLength: content?.length });
+    console.log('Sending message:', { conversationId, senderId, contentLength: content?.length });
 
     // Validation
-    if (!content || !senderId || !senderType) {
+    if (!content || !senderId) {
       return NextResponse.json(
         {
           status: 'error',
-          message: 'Content, sender ID, and sender type are required',
+          message: 'Content and sender ID are required',
           missing: {
             content: !content,
             senderId: !senderId,
-            senderType: !senderType,
           },
-        },
-        { status: 400 }
-      );
-    }
-
-    if (senderType !== 'customer' && senderType !== 'vendor') {
-      return NextResponse.json(
-        {
-          status: 'error',
-          message: 'Sender type must be either "customer" or "vendor"',
         },
         { status: 400 }
       );
@@ -46,6 +35,7 @@ export async function POST(
     // Verify conversation exists
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
+      select: { senderId: true, receiverId: true },
     });
 
     if (!conversation) {
@@ -57,8 +47,7 @@ export async function POST(
 
     // Verify sender is part of this conversation
     const isValidSender =
-      (senderType === 'customer' && conversation.customerId === senderId) ||
-      (senderType === 'vendor' && conversation.vendorId === senderId);
+      conversation.senderId === senderId || conversation.receiverId === senderId;
 
     if (!isValidSender) {
       return NextResponse.json(
@@ -73,7 +62,6 @@ export async function POST(
         conversationId,
         content,
         senderId,
-        senderType,
         isRead: false,
       },
     });
@@ -83,10 +71,11 @@ export async function POST(
       lastMessageAt: new Date(),
     };
 
-    if (senderType === 'customer') {
-      updateData.vendorUnread = { increment: 1 };
+    // Increment unread for the recipient
+    if (conversation.senderId === senderId) {
+      updateData.receiverUnread = { increment: 1 };
     } else {
-      updateData.customerUnread = { increment: 1 };
+      updateData.senderUnread = { increment: 1 };
     }
 
     await prisma.conversation.update({
